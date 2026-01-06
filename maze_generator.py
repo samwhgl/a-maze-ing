@@ -119,12 +119,12 @@ def add_42_pattern(maze: list)-> list:
 
 
 def print_maze_pretty(maze: list):
-    # Couleurs et symboles
-    # \033[38;5;237m = Gris foncé (murs)
-    # \033[0m = Reset couleur
     WALL = "\033[38;5;237m██\033[0m"
-    PATH = "  "
-    SIGN = "\033[1;31m██\033[0m"
+    SIGN = "\033[1;31m██\033[0m"  # -2 (Rouge)
+    START = "\033[1;36m██\033[0m" # -3 (Cyan)
+    END = "\033[1;33m██\033[0m"   # -4 (Jaune)
+    PATH = "\033[1;32m██\033[0m"  # -5 (Vert)
+    EMPTY = "  "
 
     for row in maze:
         line = ""
@@ -133,45 +133,72 @@ def print_maze_pretty(maze: list):
                 line += WALL
             elif cell == -2:
                 line += SIGN
-            else:
+            elif cell == -3:
+                line += START
+            elif cell == -4:
+                line += END
+            elif cell == -5:
                 line += PATH
+            else:
+                line += EMPTY
         print(line)
 
 
 def find_shortest_path(maze: list, start: tuple, end: tuple)-> list:
     j, i = start
     j_finish, i_finish = end
-    j = j * 2 + 1
-    i = i * 2 + 1
-    j_finish = j_finish * 2 + 1
-    i_finish = i_finish * 2 + 1
+    j, i = j * 2 + 1, i * 2 + 1
+    j_finish, i_finish = j_finish * 2 + 1, i_finish * 2 + 1
+
     finished = False
-    count = -4
-    maze[i][j] = -3
-    while not finished:
-        v_haut = maze[i - 1][j]
-        v_bas = maze[i + 1][j]
-        v_gauche = maze[i][j - 1]
-        v_droite = maze[i][j + 1]
-        if v_haut == 0:
-            maze[i - 2][j] = count
-        if v_bas == 0:
-            maze[i + 2][j] = count
-        if v_gauche == 0:
-            maze[i][j - 2] = count
-        if v_droite == 0:
-            maze[i][j + 2] = count
+    count = -10
+    maze[i][j] = -9
+    following_cell = [(i, j)]
+
+    while not finished and following_cell:
+        next_cells = []
+        for curr_i, curr_j in following_cell:
+            directions = [(-1, 0, -2, 0), (1, 0, 2, 0), (0, -1, 0, -2), (0, 1, 0, 2)]
+            for di_w, dj_w, di_c, dj_c in directions:
+                wi, wj = curr_i + di_w, curr_j + dj_w
+                ni, nj = curr_i + di_c, curr_j + dj_c
+                if 0 <= ni < len(maze) and 0 <= nj < len(maze[0]):
+                    if maze[wi][wj] == 0 and maze[ni][nj] > 0:
+                        maze[ni][nj] = count
+                        next_cells.append((ni, nj))
+                        if ni == i_finish and nj == j_finish:
+                            finished = True
+        following_cell = next_cells
         count -= 1
-        if maze[i_finish][j_finish] == count:
-            finished = True
+
+    if finished:
+        curr_i, curr_j = i_finish, j_finish
+        while maze[curr_i][curr_j] != -9:
+            val_actuelle = maze[curr_i][curr_j]
+
+            for di_w, dj_w, di_c, dj_c in [(-1,0,-2,0), (1,0,2,0), (0,-1,0,-2), (0,1,0,2)]:
+                ni, nj = curr_i + di_c, curr_j + dj_c
+                wi, wj = curr_i + di_w, curr_j + dj_w
+
+                if 0 <= ni < len(maze) and 0 <= nj < len(maze[0]):
+                    if (maze[ni][nj] == val_actuelle + 1 or maze[ni][nj] == -9) and maze[wi][wj] == 0:
+                        maze[curr_i][curr_j] = -5
+                        maze[wi][wj] = -5
+                        curr_i, curr_j = ni, nj
+                        break
+
+        maze[i][j] = -3
+        maze[i_finish][j_finish] = -4
+
+    return maze
 
 
-
-
-
-maze = generate_maze_skeleton(18, 19)
+maze = generate_maze_skeleton(11, 11)
 maze_42 = add_42_pattern(maze)
 maze_finished = generate_maze(maze)
+maze_solved = find_shortest_path(maze, (1, 1), (10, 10))
 print_maze_pretty(maze)
+for row in maze_solved:
+    print(row)
 
 
