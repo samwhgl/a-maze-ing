@@ -192,13 +192,72 @@ def find_shortest_path(maze: list, start: tuple, end: tuple)-> list:
 
     return maze
 
+def print_maze_without_path(maze: list):
+    WALL = "\033[38;5;237m██\033[0m"
+    SIGN = "\033[1;31m██\033[0m"  # -2 (Rouge)
+    START = "\033[1;36m██\033[0m" # -3 (Cyan)
+    END = "\033[1;33m██\033[0m"   # -4 (Jaune)
+    EMPTY = "  "
 
-maze = generate_maze_skeleton(11, 11)
-maze_42 = add_42_pattern(maze)
-maze_finished = generate_maze(maze)
-maze_solved = find_shortest_path(maze, (1, 1), (10, 10))
-print_maze_pretty(maze)
-for row in maze_solved:
-    print(row)
+    for row in maze:
+        line = ""
+        for cell in row:
+            if cell == -1:
+                line += WALL
+            elif cell == -2:
+                line += SIGN
+            elif cell == -3:
+                line += START
+            elif cell == -4:
+                line += END
+            else:
+                line += EMPTY
+        print(line)
+
+
+
+
+
+if __name__ == "__main__":
+    maze = generate_maze_skeleton(20, 20)
+    maze_42 = add_42_pattern(maze)
+    maze_finished = generate_maze(maze)
+    maze_solved = find_shortest_path(maze, (0, 0), (19, 19))
+    print_maze_pretty(maze)
+    user = [0]
+    show_path = True
+    while user is not 4:
+
+        print("=== A-Maze-ing ===")
+        print("1. Re-generate a new maze")
+        print("2. Show/Hide path from entry to exit")
+        print("3. Rotate maze colors")
+        print("4. Quit")
+        print("Choice? (1-4):")
+        try:
+            user = int(input())
+        except ValueError:
+            user.append(0)
+        print(user)
+        possible_input = [1, 2, 3, 4]
+        if user not in possible_input:
+            print("invalid input")
+        if user == 4:
+            quit()
+        if user == 1:
+                maze = generate_maze_skeleton(20, 20)
+                maze_42 = add_42_pattern(maze)
+                maze_finished = generate_maze(maze)
+                maze_solved = find_shortest_path(maze, (0, 0), (19, 19))
+                print_maze_pretty(maze)
+        if user == 2:
+            if show_path == True:
+                print_maze_without_path(maze)
+                show_path = False
+            else:
+                print_maze_pretty(maze)
+                show_path = True
+        print(user)
+
 
 
